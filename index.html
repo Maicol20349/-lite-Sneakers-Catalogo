@@ -360,11 +360,12 @@
 
   <div class="es-header">
     <div class="es-brand">
-      <h1>Elite <span>Sneakers</span></h1>
-      <p>Catálogo — actualizado a diario</p>
+      <h1 id="es-brand-title">Elite <span>Sneakers</span></h1>
+      <p id="es-brand-tagline">Catálogo — actualizado a diario</p>
     </div>
     <div class="es-controls">
-      <button class="es-btn" id="es-toggle-edit">Modo edición: Off</button>
+      <button class="es-btn" id="es-toggle-edit" style="display:none;">Modo edición: Off</button>
+      <button class="es-btn" id="es-edit-header" style="display:none;">Editar encabezado</button>
     </div>
   </div>
 
@@ -374,7 +375,7 @@
   <div id="es-empty" class="es-empty" style="display:none;">
     <h2>Aún no hay tenis en el catálogo</h2>
     <p>Activa el modo edición y agrega tu primer par.</p>
-    <button class="es-btn es-primary" id="es-empty-add">Agregar primer par</button>
+    <button class="es-btn es-primary" id="es-empty-add" style="display:none;">Agregar primer par</button>
   </div>
 
   <div class="es-modal-bg" id="es-modal-bg">
@@ -410,6 +411,24 @@
   </div>
 
   <div class="es-status" id="es-status"></div>
+
+  <div class="es-modal-bg" id="es-header-modal-bg">
+    <div class="es-modal">
+      <h3>Editar encabezado</h3>
+      <div class="es-field">
+        <label>Nombre de la marca</label>
+        <input type="text" id="es-input-brand" placeholder="Ej. Elite Sneakers">
+      </div>
+      <div class="es-field">
+        <label>Frase debajo del nombre</label>
+        <input type="text" id="es-input-tagline" placeholder="Ej. Catálogo — actualizado a diario">
+      </div>
+      <div class="es-modal-row">
+        <button class="es-btn" id="es-header-cancel">Cancelar</button>
+        <button class="es-btn es-primary" id="es-header-save">Guardar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -434,6 +453,50 @@
   let pendingImage = null;
   let activeTab = 'Todos';
   const CATEGORIES = ['Todos', 'Hombre', 'Mujer', 'Unisex'];
+  const ADMIN_KEY = 'elite2026';
+  const isAdmin = new URLSearchParams(window.location.search).get('admin') === ADMIN_KEY;
+  if (isAdmin) {
+    toggleBtn.style.display = 'inline-block';
+    document.getElementById('es-edit-header').style.display = 'inline-block';
+  }
+  const HEADER_KEY = 'elite-sneakers-header';
+  const brandTitleEl = document.getElementById('es-brand-title');
+  const brandTaglineEl = document.getElementById('es-brand-tagline');
+
+  async function loadHeader() {
+    try {
+      const res = await window.storage.get(HEADER_KEY, true);
+      if (res && res.value) {
+        const h = JSON.parse(res.value);
+        if (h.brand) brandTitleEl.textContent = h.brand;
+        if (h.tagline) brandTaglineEl.textContent = h.tagline;
+      }
+    } catch (e) { /* keep defaults */ }
+  }
+
+  document.getElementById('es-edit-header').onclick = () => {
+    if (!isAdmin) return;
+    document.getElementById('es-input-brand').value = brandTitleEl.textContent.trim();
+    document.getElementById('es-input-tagline').value = brandTaglineEl.textContent.trim();
+    document.getElementById('es-header-modal-bg').classList.add('es-show');
+  };
+  document.getElementById('es-header-cancel').onclick = () => {
+    document.getElementById('es-header-modal-bg').classList.remove('es-show');
+  };
+  document.getElementById('es-header-save').onclick = async () => {
+    const brand = document.getElementById('es-input-brand').value.trim();
+    const tagline = document.getElementById('es-input-tagline').value.trim();
+    if (brand) brandTitleEl.textContent = brand;
+    if (tagline) brandTaglineEl.textContent = tagline;
+    document.getElementById('es-header-modal-bg').classList.remove('es-show');
+    try {
+      await window.storage.set(HEADER_KEY, JSON.stringify({ brand, tagline }), true);
+      showStatus('Encabezado guardado');
+    } catch (e) {
+      showStatus('No se pudo guardar');
+    }
+  };
+  loadHeader();
 
   const STORAGE_KEY = 'elite-sneakers-catalog';
 
@@ -626,7 +689,8 @@
   }
 
   document.getElementById('es-modal-cancel').onclick = closeModal;
-  document.getElementById('es-empty-add').onclick = () => openModal(null);
+  if (isAdmin) document.getElementById('es-empty-add').style.display = 'inline-block';
+  document.getElementById('es-empty-add').onclick = () => { if (isAdmin) openModal(null); };
 
   document.getElementById('es-modal-save').onclick = async () => {
     const name = nameInput.value.trim();
@@ -648,6 +712,7 @@
   };
 
   toggleBtn.onclick = () => {
+    if (!isAdmin) return;
     editMode = !editMode;
     toggleBtn.textContent = 'Modo edición: ' + (editMode ? 'On' : 'Off');
     toggleBtn.classList.toggle('es-on', editMode);
