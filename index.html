@@ -510,7 +510,7 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       showStatus('Guardado');
     } catch (e) {
-      showStatus('No se pudo guardar — revisa tu conexión');
+      showStatus('Error al guardar: ' + e.message, true);
     }
   }
 
@@ -532,10 +532,10 @@
     await saveData();
   };
 
-  function showStatus(msg) {
+  function showStatus(msg, isError) {
     statusEl.textContent = msg;
     statusEl.classList.add('es-visible');
-    setTimeout(() => statusEl.classList.remove('es-visible'), 1800);
+    setTimeout(() => statusEl.classList.remove('es-visible'), isError ? 6000 : 1800);
   }
 
   function code(id) {
