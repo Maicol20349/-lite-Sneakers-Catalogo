@@ -1,0 +1,660 @@
+<div id="es-root">
+  <style>
+    #es-root {
+      --ink: #12141A;
+      --ink-soft: #1D2029;
+      --paper: #FAF7F0;
+      --paper-dim: #EFEAE0;
+      --steel: #7D8290;
+      --volt: #2D5BFF;
+      --coral: #FF5A36;
+      --line: #2A2E3A;
+      font-family: 'Work Sans', -apple-system, sans-serif;
+      color: var(--paper);
+      background: var(--ink);
+      min-height: 100%;
+      padding: 0 0 60px 0;
+      box-sizing: border-box;
+    }
+    #es-root * { box-sizing: border-box; }
+    #es-root .es-import {
+      display: none;
+    }
+
+    /* ---------- Header ---------- */
+    #es-root .es-header {
+      padding: 36px 28px 24px 28px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    #es-root .es-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #es-root .es-brand h1 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(32px, 6vw, 52px);
+      letter-spacing: 1px;
+      margin: 0;
+      line-height: 0.95;
+      text-transform: uppercase;
+      color: var(--paper);
+    }
+    #es-root .es-brand h1 span { color: var(--volt); }
+    #es-root .es-brand p {
+      margin: 0;
+      color: var(--steel);
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #es-root .es-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #es-root .es-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--paper);
+      padding: 11px 16px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all .15s ease;
+      white-space: nowrap;
+    }
+    #es-root .es-btn:hover { border-color: var(--volt); color: var(--volt); }
+    #es-root .es-btn.es-primary {
+      background: var(--volt);
+      border-color: var(--volt);
+      color: var(--ink);
+      font-weight: 600;
+    }
+    #es-root .es-btn.es-primary:hover { background: #4A72FF; color: var(--ink); }
+    #es-root .es-btn.es-on { background: var(--coral); border-color: var(--coral); color: var(--ink); font-weight:600; }
+
+    /* ---------- Category tabs ---------- */
+    #es-root .es-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 22px 28px 0 28px;
+      flex-wrap: wrap;
+    }
+    #es-root .es-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--steel);
+      padding: 9px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    #es-root .es-tab:hover { border-color: var(--volt); color: var(--paper); }
+    #es-root .es-tab.es-active {
+      background: var(--volt);
+      border-color: var(--volt);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    /* ---------- Grid ---------- */
+    #es-root .es-grid {
+      padding: 32px 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 22px;
+    }
+
+    /* ---------- Ticket card (signature element) ---------- */
+    #es-root .es-card {
+      position: relative;
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 24px rgba(0,0,0,.28);
+    }
+    #es-root .es-imgwrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background:
+        repeating-linear-gradient(45deg, var(--paper-dim), var(--paper-dim) 8px, var(--paper) 8px, var(--paper) 16px);
+      overflow: hidden;
+    }
+    #es-root .es-imgwrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    #es-root .es-imgwrap .es-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--steel);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-align: center;
+      padding: 10px;
+      text-transform: uppercase;
+    }
+    #es-root .es-edit-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(18,20,26,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    #es-root .es-card.es-editable .es-edit-overlay { display: flex; }
+    #es-root .es-edit-overlay button {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: var(--paper);
+      color: var(--ink);
+      border: none;
+      padding: 9px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #es-root .es-edit-overlay button.es-del { background: var(--coral); color: var(--ink); }
+
+    /* perforated tear between image and info, like a ticket stub */
+    #es-root .es-tear {
+      height: 14px;
+      background: var(--paper);
+      position: relative;
+    }
+    #es-root .es-tear::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 0; right: 0;
+      height: 8px;
+      background-image: radial-gradient(circle 5px at 0 0, transparent 5px, var(--ink) 5.5px);
+      background-size: 16px 8px;
+      background-repeat: repeat-x;
+      background-position: 6px 0;
+      opacity: 0;
+    }
+    #es-root .es-tear::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 12px; right: 12px;
+      border-top: 2px dashed var(--line);
+      opacity: .25;
+    }
+
+    #es-root .es-info { padding: 4px 16px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+    #es-root .es-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--steel);
+      text-transform: uppercase;
+    }
+    #es-root .es-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 19px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      line-height: 1.15;
+    }
+    #es-root .es-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--volt);
+    }
+
+    /* Add card */
+    #es-root .es-add-card {
+      border: 2px dashed var(--line);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      cursor: pointer;
+      color: var(--steel);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all .15s ease;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #es-root .es-add-card:hover { border-color: var(--volt); color: var(--volt); }
+    #es-root .es-add-card .es-plus { font-size: 34px; line-height: 1; font-family: 'Oswald', sans-serif; }
+
+    /* ---------- Empty state ---------- */
+    #es-root .es-empty {
+      padding: 80px 28px;
+      text-align: center;
+      color: var(--steel);
+    }
+    #es-root .es-empty h2 {
+      font-family: 'Oswald', sans-serif;
+      color: var(--paper);
+      text-transform: uppercase;
+      font-size: 22px;
+      margin: 0 0 8px 0;
+    }
+    #es-root .es-empty p { font-size: 14px; margin: 0 0 20px 0; }
+
+    /* ---------- Modal ---------- */
+    #es-root .es-modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(12,13,17,.72);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #es-root .es-modal-bg.es-show { display: flex; }
+    #es-root .es-modal {
+      background: var(--ink-soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      width: 100%;
+      max-width: 420px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    #es-root .es-modal h3 {
+      font-family: 'Oswald', sans-serif;
+      text-transform: uppercase;
+      margin: 0 0 4px 0;
+      font-size: 20px;
+    }
+    #es-root .es-field { display: flex; flex-direction: column; gap: 6px; }
+    #es-root .es-field label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--steel);
+    }
+    #es-root .es-field input {
+      background: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 10px 12px;
+      color: var(--paper);
+      font-family: 'Work Sans', sans-serif;
+      font-size: 14px;
+    }
+    #es-root .es-field input:focus { outline: none; border-color: var(--volt); }
+    #es-root .es-preview {
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--paper-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--steel);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    #es-root .es-preview img { width: 100%; height: 100%; object-fit: cover; }
+    #es-root .es-modal-row { display: flex; gap: 10px; margin-top: 6px; }
+    #es-root .es-modal-row .es-btn { flex: 1; }
+    #es-root .es-hint { color: var(--steel); font-size: 11px; margin: -6px 0 0 0; }
+
+    #es-root .es-status {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--volt);
+      color: var(--ink);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: all .25s ease;
+      pointer-events: none;
+      z-index: 60;
+    }
+    #es-root .es-status.es-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">
+
+  <div class="es-header">
+    <div class="es-brand">
+      <h1>Elite <span>Sneakers</span></h1>
+      <p>Catálogo — actualizado a diario</p>
+    </div>
+    <div class="es-controls">
+      <button class="es-btn" id="es-toggle-edit">Modo edición: Off</button>
+    </div>
+  </div>
+
+  <div class="es-tabs" id="es-tabs"></div>
+
+  <div id="es-grid" class="es-grid"></div>
+  <div id="es-empty" class="es-empty" style="display:none;">
+    <h2>Aún no hay tenis en el catálogo</h2>
+    <p>Activa el modo edición y agrega tu primer par.</p>
+    <button class="es-btn es-primary" id="es-empty-add">Agregar primer par</button>
+  </div>
+
+  <div class="es-modal-bg" id="es-modal-bg">
+    <div class="es-modal">
+      <h3 id="es-modal-title">Nuevo par</h3>
+      <div class="es-field">
+        <label>Imagen</label>
+        <div class="es-preview" id="es-preview">Sin imagen</div>
+        <input type="file" accept="image/*" id="es-file-input">
+        <p class="es-hint">Sube una foto desde tu computador o celular — se guarda directo en el catálogo.</p>
+      </div>
+      <div class="es-field">
+        <label>Nombre del modelo</label>
+        <input type="text" id="es-input-name" placeholder="Ej. Air Runner 90">
+      </div>
+      <div class="es-field">
+        <label>Precio</label>
+        <input type="text" id="es-input-price" placeholder="Ej. $250.000">
+      </div>
+      <div class="es-field">
+        <label>Categoría</label>
+        <select id="es-input-category" style="background:var(--ink);border:1px solid var(--line);border-radius:3px;padding:10px 12px;color:var(--paper);font-family:'Work Sans',sans-serif;font-size:14px;">
+          <option value="Hombre">Hombre</option>
+          <option value="Mujer">Mujer</option>
+          <option value="Unisex">Unisex</option>
+        </select>
+      </div>
+      <div class="es-modal-row">
+        <button class="es-btn" id="es-modal-cancel">Cancelar</button>
+        <button class="es-btn es-primary" id="es-modal-save">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="es-status" id="es-status"></div>
+</div>
+
+<script>
+(function() {
+  const root = document.getElementById('es-root');
+  const grid = document.getElementById('es-grid');
+  const empty = document.getElementById('es-empty');
+  const toggleBtn = document.getElementById('es-toggle-edit');
+  const modalBg = document.getElementById('es-modal-bg');
+  const modalTitle = document.getElementById('es-modal-title');
+  const preview = document.getElementById('es-preview');
+  const fileInput = document.getElementById('es-file-input');
+  const nameInput = document.getElementById('es-input-name');
+  const priceInput = document.getElementById('es-input-price');
+  const categoryInput = document.getElementById('es-input-category');
+  const statusEl = document.getElementById('es-status');
+  const tabsEl = document.getElementById('es-tabs');
+
+  let products = [];
+  let editMode = false;
+  let editingId = null;
+  let pendingImage = null;
+  let activeTab = 'Todos';
+  const CATEGORIES = ['Todos', 'Hombre', 'Mujer', 'Unisex'];
+
+  const STORAGE_KEY = 'elite-sneakers-catalog';
+
+  function showStatus(msg) {
+    statusEl.textContent = msg;
+    statusEl.classList.add('es-visible');
+    setTimeout(() => statusEl.classList.remove('es-visible'), 1800);
+  }
+
+  function code(id) {
+    return 'ES-' + String(id).padStart(3, '0');
+  }
+
+  async function loadCatalog() {
+    grid.innerHTML = '<p style="color:var(--steel);font-family:JetBrains Mono, monospace;font-size:12px;padding:20px;">Cargando catálogo…</p>';
+    try {
+      const res = await window.storage.get(STORAGE_KEY, true);
+      products = res && res.value ? JSON.parse(res.value) : [];
+    } catch (e) {
+      products = [];
+    }
+    render();
+  }
+
+  async function saveCatalog() {
+    try {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(products), true);
+      showStatus('Catálogo guardado');
+    } catch (e) {
+      showStatus('No se pudo guardar');
+    }
+  }
+
+  function renderTabs() {
+    tabsEl.innerHTML = '';
+    if (products.length === 0 && !editMode) { tabsEl.style.display = 'none'; return; }
+    tabsEl.style.display = 'flex';
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'es-tab' + (activeTab === cat ? ' es-active' : '');
+      btn.textContent = cat;
+      btn.onclick = () => { activeTab = cat; render(); };
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  function render() {
+    renderTabs();
+    grid.innerHTML = '';
+    const visible = products.filter(p => activeTab === 'Todos' || (p.category || 'Unisex') === activeTab);
+
+    if (products.length === 0) {
+      empty.style.display = 'block';
+      grid.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.style.display = 'grid';
+
+    if (visible.length === 0) {
+      grid.innerHTML = '<p style="color:var(--steel);font-family:\'JetBrains Mono\',monospace;font-size:12px;padding:10px 4px;grid-column:1/-1;">No hay tenis en esta categoría todavía.</p>';
+    }
+
+    visible.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'es-card' + (editMode ? ' es-editable' : '');
+
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'es-imgwrap';
+      if (p.image) {
+        const img = document.createElement('img');
+        img.src = p.image;
+        imgWrap.appendChild(img);
+      } else {
+        const ph = document.createElement('div');
+        ph.className = 'es-placeholder';
+        ph.textContent = 'Sin imagen';
+        imgWrap.appendChild(ph);
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'es-edit-overlay';
+      const editB = document.createElement('button');
+      editB.textContent = 'Editar';
+      editB.onclick = () => openModal(p);
+      const delB = document.createElement('button');
+      delB.className = 'es-del';
+      delB.textContent = 'Eliminar';
+      delB.onclick = () => deleteProduct(p.id);
+      overlay.appendChild(editB);
+      overlay.appendChild(delB);
+      imgWrap.appendChild(overlay);
+
+      const tear = document.createElement('div');
+      tear.className = 'es-tear';
+
+      const info = document.createElement('div');
+      info.className = 'es-info';
+      info.innerHTML = `
+        <div class="es-code">${code(p.id)} · ${escapeHtml(p.category || 'Unisex')}</div>
+        <div class="es-name">${escapeHtml(p.name || 'Sin nombre')}</div>
+        <div class="es-price">${escapeHtml(p.price || '')}</div>
+      `;
+
+      card.appendChild(imgWrap);
+      card.appendChild(tear);
+      card.appendChild(info);
+      grid.appendChild(card);
+    });
+
+    if (editMode) {
+      const addCard = document.createElement('div');
+      addCard.className = 'es-add-card';
+      addCard.innerHTML = '<div class="es-plus">+</div><div>Agregar par</div>';
+      addCard.onclick = () => openModal(null);
+      grid.appendChild(addCard);
+    }
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function openModal(product) {
+    editingId = product ? product.id : null;
+    pendingImage = product ? product.image : null;
+    modalTitle.textContent = product ? 'Editar par' : 'Nuevo par';
+    nameInput.value = product ? (product.name || '') : '';
+    priceInput.value = product ? (product.price || '') : '';
+    categoryInput.value = product ? (product.category || 'Unisex') : 'Hombre';
+    fileInput.value = '';
+    updatePreview();
+    modalBg.classList.add('es-show');
+  }
+
+  function closeModal() {
+    modalBg.classList.remove('es-show');
+    editingId = null;
+    pendingImage = null;
+  }
+
+  function updatePreview() {
+    if (pendingImage) {
+      preview.innerHTML = `<img src="${pendingImage}">`;
+    } else {
+      preview.textContent = 'Sin imagen';
+    }
+  }
+
+  function resizeImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxW = 900;
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.78));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    try {
+      pendingImage = await resizeImage(file);
+      updatePreview();
+    } catch (e) {
+      showStatus('No se pudo cargar la imagen');
+    }
+  });
+
+  async function deleteProduct(id) {
+    products = products.filter(p => p.id !== id);
+    render();
+    await saveCatalog();
+  }
+
+  document.getElementById('es-modal-cancel').onclick = closeModal;
+  document.getElementById('es-empty-add').onclick = () => openModal(null);
+
+  document.getElementById('es-modal-save').onclick = async () => {
+    const name = nameInput.value.trim();
+    const price = priceInput.value.trim();
+    const category = categoryInput.value;
+    if (editingId !== null) {
+      const p = products.find(p => p.id === editingId);
+      p.name = name;
+      p.price = price;
+      p.image = pendingImage;
+      p.category = category;
+    } else {
+      const nextId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+      products.push({ id: nextId, name, price, image: pendingImage, category });
+    }
+    closeModal();
+    render();
+    await saveCatalog();
+  };
+
+  toggleBtn.onclick = () => {
+    editMode = !editMode;
+    toggleBtn.textContent = 'Modo edición: ' + (editMode ? 'On' : 'Off');
+    toggleBtn.classList.toggle('es-on', editMode);
+    if (!CATEGORIES.includes(activeTab)) activeTab = 'Todos';
+    render();
+  };
+
+  loadCatalog();
+})();
+</script>
