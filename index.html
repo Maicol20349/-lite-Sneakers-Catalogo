@@ -459,19 +459,53 @@
     toggleBtn.style.display = 'inline-block';
     document.getElementById('es-edit-header').style.display = 'inline-block';
   }
-  const HEADER_KEY = 'elite-sneakers-header';
   const brandTitleEl = document.getElementById('es-brand-title');
   const brandTaglineEl = document.getElementById('es-brand-tagline');
 
-  async function loadHeader() {
+  // ---------- Almacenamiento real (jsonbin.io) ----------
+  const JSONBIN_ID = '6a77535bda38895dfeca5dec';
+  const JSONBIN_KEY = '$2a$10$2k3/jCyZdLMjL1bC48ErUeIp5ejcQsD/YABUNzrVpUiTShfIT5kb6';
+  const JSONBIN_URL = 'https://api.jsonbin.io/v3/b/' + JSONBIN_ID;
+
+  async function loadData() {
+    grid.innerHTML = '<p style="color:var(--steel);font-family:JetBrains Mono, monospace;font-size:12px;padding:20px;">Cargando catálogo…</p>';
     try {
-      const res = await window.storage.get(HEADER_KEY, true);
-      if (res && res.value) {
-        const h = JSON.parse(res.value);
-        if (h.brand) brandTitleEl.textContent = h.brand;
-        if (h.tagline) brandTaglineEl.textContent = h.tagline;
+      const res = await fetch(JSONBIN_URL + '/latest', {
+        headers: { 'X-Master-Key': JSONBIN_KEY }
+      });
+      const data = await res.json();
+      const record = (data && data.record) || {};
+      products = Array.isArray(record.products) ? record.products : [];
+      if (record.header) {
+        if (record.header.brand) brandTitleEl.textContent = record.header.brand;
+        if (record.header.tagline) brandTaglineEl.textContent = record.header.tagline;
       }
-    } catch (e) { /* keep defaults */ }
+    } catch (e) {
+      products = [];
+    }
+    render();
+  }
+
+  async function saveData() {
+    try {
+      await fetch(JSONBIN_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': JSONBIN_KEY
+        },
+        body: JSON.stringify({
+          products: products,
+          header: {
+            brand: brandTitleEl.textContent.trim(),
+            tagline: brandTaglineEl.textContent.trim()
+          }
+        })
+      });
+      showStatus('Guardado');
+    } catch (e) {
+      showStatus('No se pudo guardar — revisa tu conexión');
+    }
   }
 
   document.getElementById('es-edit-header').onclick = () => {
@@ -489,16 +523,8 @@
     if (brand) brandTitleEl.textContent = brand;
     if (tagline) brandTaglineEl.textContent = tagline;
     document.getElementById('es-header-modal-bg').classList.remove('es-show');
-    try {
-      await window.storage.set(HEADER_KEY, JSON.stringify({ brand, tagline }), true);
-      showStatus('Encabezado guardado');
-    } catch (e) {
-      showStatus('No se pudo guardar');
-    }
+    await saveData();
   };
-  loadHeader();
-
-  const STORAGE_KEY = 'elite-sneakers-catalog';
 
   function showStatus(msg) {
     statusEl.textContent = msg;
@@ -510,25 +536,6 @@
     return 'ES-' + String(id).padStart(3, '0');
   }
 
-  async function loadCatalog() {
-    grid.innerHTML = '<p style="color:var(--steel);font-family:JetBrains Mono, monospace;font-size:12px;padding:20px;">Cargando catálogo…</p>';
-    try {
-      const res = await window.storage.get(STORAGE_KEY, true);
-      products = res && res.value ? JSON.parse(res.value) : [];
-    } catch (e) {
-      products = [];
-    }
-    render();
-  }
-
-  async function saveCatalog() {
-    try {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(products), true);
-      showStatus('Catálogo guardado');
-    } catch (e) {
-      showStatus('No se pudo guardar');
-    }
-  }
 
   function renderTabs() {
     tabsEl.innerHTML = '';
@@ -685,7 +692,7 @@
   async function deleteProduct(id) {
     products = products.filter(p => p.id !== id);
     render();
-    await saveCatalog();
+    await saveData();
   }
 
   document.getElementById('es-modal-cancel').onclick = closeModal;
@@ -708,7 +715,7 @@
     }
     closeModal();
     render();
-    await saveCatalog();
+    await saveData();
   };
 
   toggleBtn.onclick = () => {
@@ -720,6 +727,6 @@
     render();
   };
 
-  loadCatalog();
+  loadData();
 })();
 </script>
