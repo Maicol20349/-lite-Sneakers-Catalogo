@@ -470,17 +470,22 @@
   async function loadData() {
     grid.innerHTML = '<p style="color:var(--steel);font-family:JetBrains Mono, monospace;font-size:12px;padding:20px;">Cargando catálogo…</p>';
     try {
-      const res = await fetch(JSONBIN_URL + '/latest', {
-        headers: { 'X-Master-Key': JSONBIN_KEY }
+      const res = await fetch(JSONBIN_URL + '/latest?t=' + Date.now(), {
+        cache: 'no-store',
+        headers: {
+          'X-Master-Key': JSONBIN_KEY,
+          'X-Bin-Meta': 'false'
+        }
       });
-      const data = await res.json();
-      const record = (data && data.record) || {};
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const record = await res.json();
       products = Array.isArray(record.products) ? record.products : [];
       if (record.header) {
         if (record.header.brand) brandTitleEl.textContent = record.header.brand;
         if (record.header.tagline) brandTaglineEl.textContent = record.header.tagline;
       }
     } catch (e) {
+      showStatus('No se pudo cargar el catálogo');
       products = [];
     }
     render();
@@ -488,7 +493,7 @@
 
   async function saveData() {
     try {
-      await fetch(JSONBIN_URL, {
+      const res = await fetch(JSONBIN_URL, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -502,6 +507,7 @@
           }
         })
       });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       showStatus('Guardado');
     } catch (e) {
       showStatus('No se pudo guardar — revisa tu conexión');
