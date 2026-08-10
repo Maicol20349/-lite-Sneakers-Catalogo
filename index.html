@@ -559,7 +559,12 @@
   function render() {
     renderTabs();
     grid.innerHTML = '';
-    const visible = products.filter(p => activeTab === 'Todos' || (p.category || 'Unisex') === activeTab);
+    const visible = products.filter(p => {
+  const cat = p.category || 'Unisex';
+  if (activeTab === 'Todos') return true;
+  if (cat === 'Unisex') return true; // los unisex aparecen en todos los filtros
+  return cat === activeTab;
+});
 
     if (products.length === 0) {
       empty.style.display = 'block';
